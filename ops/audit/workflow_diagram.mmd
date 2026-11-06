@@ -1,0 +1,58 @@
+graph TD
+    %% Main Architecture Styles
+    classDef trigger fill:#E3F2FD,stroke:#1976D2,stroke-width:2px;
+    classDef logic fill:#FFF9C4,stroke:#FBC02D,stroke-width:2px;
+    classDef happy fill:#E8F5E9,stroke:#388E3C,stroke-width:2px;
+    classDef exception fill:#FFEBEE,stroke:#D32F2F,stroke-width:2px;
+    classDef notify fill:#EDE7F6,stroke:#512DA8,stroke-width:2px;
+    classDef db fill:#ECEFF1,stroke:#455A64,stroke-width:2px;
+
+    %% STAGE 1: INGESTION & TRIGGER
+    subgraph S1 [Stage 1: Webhook Ingestion & Inversion]
+        A[Parent Pays via Gateway] -->|Webhook / API| B(Payment Ingestion Worker: n8n):::trigger
+        B --> C[(Invoices Database)]:::db
+        C --> D{Payment Status?}:::logic
+        D -->|Failed| EX_FAIL[PAYMENT_FAILED: Alert Parent & Teacher]:::exception
+        D -->|Partially Paid| EX_PARTIAL[PARTIAL_PAYMENT: Hold & Trigger Tranche 2 Link]:::exception
+        D -->|Paid in Full| E[Lookup Student in Reference Database]:::logic
+    end
+
+    %% STAGE 2: DATA INTEGRITY & TEACHER MATCHING
+    subgraph S2 [Stage 2: Validation & Entity Reconciliation]
+        E --> F{Teacher Form Submitted?}:::logic
+        F -->|No > 2 Hours| EX_MISS[FACULTY_FORM_MISSING: Auto-populate Renewal & Alert Teacher]:::exception
+        F -->|Yes| G{Duplicate Form?}:::logic
+        G -->|Yes| EX_DUP[DUPLICATE_FORM: Deduplicate & Suppress Duplicate]:::exception
+        G -->|No| H{Invoice ID Matches?}:::logic
+        H -->|Typo / Mismatch| EX_TYPO[INVOICE_ID_MISMATCH: Auto-reconcile by student_id]:::exception
+        H -->|Matches| I{Payer Phone Matches Profile?}:::logic
+        I -->|No / Alternate Contact| EX_PHONE[PHONE_MISMATCH: Secondary Family Match / Ops Review]:::exception
+        I -->|Matches| J{Discount / Scholarship?}:::logic
+        J -->|Special Scholarship Applied| EX_SCHOL[SCHOLARSHIP_APPROVAL_REQUIRED: Route to Slack Approvals]:::exception
+        J -->|Standard Fee / None| K[Check Renewal Intent]:::logic
+    end
+
+    %% STAGE 3: BATCH CAPACITY & SCHEDULING
+    subgraph S3 [Stage 3: Capacity Checking & Execution]
+        K --> L{Continue Same Batch?}:::logic
+        L -->|No / Time Change| EX_CHANGE[BATCH_CHANGE_REQUIRED: Dispatch WhatsApp Interactive Slot Picker]:::exception
+        L -->|Yes| M{Current Batch Active Count < Max?}:::logic
+        M -->|Batch Full: 6/6| EX_FULL[BATCH_FULL: Hold & Suggest Sister Batches]:::exception
+        M -->|Seats Available| N[HAPPY_PATH_AUTO_APPROVED: Execute Atomic Capacity Lock]:::happy
+    end
+
+    %% STAGE 4: ZERO-TOUCH EXECUTION & NOTIFICATION
+    subgraph S4 [Stage 4: Automated Fulfillment & Notifications]
+        N --> O[(Create booking_requests: status=Completed)]:::db
+        O --> P[(Create class_schedule_bookings: All Sessions)]:::db
+        P --> Q[Dispatch Parent WhatsApp W1: Schedule & Calendar]:::notify
+        P --> R[Dispatch Teacher WhatsApp T1: Renewal Confirmed]:::notify
+        P --> S[(Log to audit_event_log)]:::db
+    end
+
+    %% EXCEPTION RESOLUTION PATHS BACK TO SCHEDULING
+    EX_CHANGE -->|Parent Selects Slot via WhatsApp| N
+    EX_PHONE -->|Ops Approves Match in 1-Click| K
+    EX_SCHOL -->|Ops Manager Approves in Slack| K
+    EX_FULL -->|Parent/Ops Chooses Sister Batch| N
+    EX_MISS -->|Teacher 1-Tap Confirms Batch| K

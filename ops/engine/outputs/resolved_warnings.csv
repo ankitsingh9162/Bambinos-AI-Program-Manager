@@ -1,0 +1,3 @@
+student_id,user_id,invoice_id,faculty_form_id,reason_code,classification,resolution_applied,description,assigned_owner,human_review_required,status,is_simulation,processed_at
+68108,41028,84908,3309,DUPLICATE_FORM,RESOLVED_WARNING,DEDUPLICATED_CANONICAL_FORM_RETAINED,"Duplicate faculty form 3309 identical to canonical form 3308 (Student 68108, Invoice 84908). Duplicate suppressed; canonical form retained.",Automated Zero-Touch Engine,False,AUTO_RESOLVED,True,2026-11-06 11:11:49
+68113,41033,84913,3313,INVOICE_ID_MISMATCH,RESOLVED_WARNING,AUTO_MATCHED_STUDENT_INVOICE,Teacher entered incorrect invoice_id 84931. Unambiguously auto-reconciled to 84913 via student profile match.,Automated Reconciliation Engine,False,AUTO_RESOLVED,True,2026-11-06 11:11:49

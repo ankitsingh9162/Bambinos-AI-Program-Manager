@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "engine_version": "1.2.0-prototype",
+        "timestamp": "2026-11-06 11:11:49",
+        "simulation_mode": true,
+        "notes": "Simulated approvals generate proposed schedule objects without modifying original CSV files."
+    },
+    "input_dataset_counts": {
+        "total_invoices": 13,
+        "unique_invoices_processed": 13,
+        "unique_students_processed": 13,
+        "paid_invoices": 11,
+        "partially_paid_invoices": 1,
+        "failed_invoices": 1,
+        "faculty_form_submissions": 12,
+        "existing_booking_requests": 4,
+        "existing_class_schedules": 2,
+        "reference_students_count": 13
+    },
+    "reconciliation_results": {
+        "unique_renewals_auto_approved": 5,
+        "unique_students_auto_approved": 5,
+        "existing_bookings_reused": 2,
+        "new_bookings_created": 3,
+        "unique_students_with_unresolved_exceptions": 8,
+        "total_unresolved_exception_records": 8,
+        "human_review_cases_count": 7,
+        "resolved_warnings_count": 2,
+        "total_notification_drafts_generated": 27,
+        "proposed_auto_approval_yield_pct": 45.5,
+        "unresolved_exception_rate_pct": 61.5
+    },
+    "reason_code_distribution": {
+        "auto_approved": {
+            "HAPPY_PATH_AUTO_APPROVED": 5
+        },
+        "resolved_warnings": {
+            "DUPLICATE_FORM": 1,
+            "INVOICE_ID_MISMATCH": 1
+        },
+        "unresolved_exceptions": {
+            "PHONE_MISMATCH": 1,
+            "BATCH_FULL": 1,
+            "SCHOLARSHIP_APPROVAL_REQUIRED": 1,
+            "PARTIAL_PAYMENT": 1,
+            "PAYMENT_FAILED": 1,
+            "BATCH_CHANGE_REQUIRED": 1,
+            "FACULTY_FORM_MISSING": 2
+        }
+    }
+}
